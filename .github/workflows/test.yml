@@ -1,0 +1,38 @@
+name: MirrorBot Test Environment
+
+on:
+  workflow_dispatch:
+
+env:
+  # Change these values if you have forked it for your own works
+  GitHubMail: "75479460+tongueiok-1@users.noreply.github.com"
+  GitHubName: "tongueiok-1"
+
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@main
+
+      - name: Setup Git
+        run: |
+          git config --global user.email ${GitHubMail}
+          git config --global user.name ${GitHubName}
+          git config --global credential.helper store
+          echo "https://${GitHubName}:${{ secrets.GH_TOKEN }}@github.com" > ~/.git-credentials
+
+      - name: Compile Docker container
+        run: |
+          git clone --recursive https://${GitHubName}:${{ secrets.GH_TOKEN }}@github.com/${{ secrets.MIRROR_REPOSLUG }} source
+          cd source || exit 1
+          docker container prune --force || true
+          docker build . --rm --force-rm --compress --no-cache=true --pull --file Dockerfile -t mirror-bot
+          docker image ls
+
+      - name: Run Docker container
+        timeout-minutes: 340
+        continue-on-error: true
+        run: |
+          docker run --privileged --rm -i mirror-bot
