@@ -51,6 +51,6 @@ jobs:
 
       - name: Trigger next workflow
         run: |
-          sleep 332m
+          sleep 338m
           curl -X POST --header "Authorization: token ${{ secrets.GH_TOKEN }}" \
             https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/mirror-bot.yml/dispatches -d '{"ref":"master"}'
