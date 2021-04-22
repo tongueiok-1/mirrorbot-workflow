@@ -42,15 +42,12 @@ jobs:
         run: |
           docker run --privileged --rm -i mirror-bot
 
-  Trigger:
-    runs-on: ubuntu-20.04
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2.3.4
-
-      - name: Trigger next workflow
+      - name: Initiate next instance
+        continue-on-error: true
         run: |
-          sleep 338m
-          curl -X POST --header "Authorization: token ${{ secrets.GH_TOKEN }}" \
-            https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/workflows/mirror-bot.yml/dispatches -d '{"ref":"master"}'
+          git clone https://${{ secrets.GH_TOKEN }}@github.com/${GITHUB_REPOSITORY} loop
+          cd loop || exit 1
+          echo $RANDOM > looper.txt
+          git add looper.txt
+          git commit -m "$(TZ='Asia/Kolkata' date +"%b %e, %l:%M %p")"
+          git push -q https://${{ secrets.GH_TOKEN }}@github.com/${GITHUB_REPOSITORY} HEAD:master
